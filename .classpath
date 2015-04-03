@@ -10,5 +10,10 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/opentdc Thirdparty ~ Google GSON (jre-1.7)"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/openCRX 3 (3.0.0+) ~ Core (jre-1.7)"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/openMDX 2 (2.14.0+) ~ Core (jre-1.7)"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/openMDX Thirdparty (2.14.0+) ~ OSGi Enterprise (jre-1.7)"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/openMDX Thirdparty (2.14.0+) ~ OSGi Extension (jre-1.7)"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/opentdc 1 ~ services-opencrx (jre-1.7)"/>
 	<classpathentry kind="output" path="build/jre-1.7/eclipse"/>
 </classpath>
