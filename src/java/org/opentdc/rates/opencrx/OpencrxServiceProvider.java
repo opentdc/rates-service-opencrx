@@ -47,7 +47,6 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 
 	// instance variables
 	private static final Logger logger = Logger.getLogger(OpencrxServiceProvider.class.getName());
-	private boolean isPersistent = true;
 
 	public OpencrxServiceProvider(
 		ServletContext context, 
