@@ -24,7 +24,6 @@
 package org.opentdc.rates.opencrx;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.naming.NamingException;
 import javax.servlet.ServletContext;
