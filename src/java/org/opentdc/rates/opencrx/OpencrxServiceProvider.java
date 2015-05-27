@@ -46,7 +46,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	public static final short ICAL_TYPE_VEVENT = 1;
 
 	// instance variables
-	private static final Logger logger = Logger.getLogger(OpencrxServiceProvider.class.getName());
+	// private static final Logger logger = Logger.getLogger(OpencrxServiceProvider.class.getName());
 
 	public OpencrxServiceProvider(
 		ServletContext context, 
@@ -86,11 +86,4 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		// TODO Auto-generated method stub
 		
 	}
-
-	@Override
-	public int count() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 }
