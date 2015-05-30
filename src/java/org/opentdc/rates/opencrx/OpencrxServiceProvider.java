@@ -33,7 +33,10 @@ import org.opentdc.opencrx.AbstractOpencrxServiceProvider;
 import org.opentdc.rates.RatesModel;
 import org.opentdc.rates.ServiceProvider;
 import org.opentdc.service.exception.DuplicateException;
+import org.opentdc.service.exception.InternalServerErrorException;
+import org.opentdc.service.exception.NotAllowedException;
 import org.opentdc.service.exception.NotFoundException;
+import org.opentdc.service.exception.ValidationException;
 
 public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider implements ServiceProvider {
 	
@@ -55,33 +58,44 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	}
 
 	@Override
-	public List<RatesModel> list(String queryType, String query, long position,
+	public List<RatesModel> list(
+			String queryType, 
+			String query, 
+			long position,
 			long size) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public RatesModel create(RatesModel rate) throws DuplicateException {
+	public RatesModel create(
+			RatesModel rate) 
+			throws DuplicateException, ValidationException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public RatesModel read(String id) throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public RatesModel update(String id, RatesModel rate)
+	public RatesModel read(
+			String id) 
 			throws NotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void delete(String id) throws NotFoundException {
+	public RatesModel update(
+			String id, 
+			RatesModel rate)
+			throws NotFoundException, NotAllowedException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void delete(
+			String id) 
+			throws NotFoundException, InternalServerErrorException {
 		// TODO Auto-generated method stub
 		
 	}
