@@ -34,7 +34,6 @@ import org.opentdc.rates.RatesModel;
 import org.opentdc.rates.ServiceProvider;
 import org.opentdc.service.exception.DuplicateException;
 import org.opentdc.service.exception.InternalServerErrorException;
-import org.opentdc.service.exception.NotAllowedException;
 import org.opentdc.service.exception.NotFoundException;
 import org.opentdc.service.exception.ValidationException;
 
@@ -87,7 +86,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	public RatesModel update(
 			String id, 
 			RatesModel rate)
-			throws NotFoundException, NotAllowedException {
+			throws NotFoundException, ValidationException {
 		// TODO Auto-generated method stub
 		return null;
 	}
