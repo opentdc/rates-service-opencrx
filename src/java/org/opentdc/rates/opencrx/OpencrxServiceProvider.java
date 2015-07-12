@@ -37,6 +37,11 @@ import org.opentdc.service.exception.InternalServerErrorException;
 import org.opentdc.service.exception.NotFoundException;
 import org.opentdc.service.exception.ValidationException;
 
+/**
+ * Implementation of RatesService with OpenCRX
+ * @author Bruno Kaiser
+ *
+ */
 public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider implements ServiceProvider {
 	
 	public static final short ACTIVITY_GROUP_TYPE_PROJECT = 40;
@@ -49,6 +54,13 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	// instance variables
 	// private static final Logger logger = Logger.getLogger(OpencrxServiceProvider.class.getName());
 
+	/**
+	 * Constructor.
+	 * @param context the servlet context
+	 * @param prefix the simple class name of the service provider
+	 * @throws ServiceException
+	 * @throws NamingException
+	 */
 	public OpencrxServiceProvider(
 		ServletContext context, 
 		String prefix
@@ -56,6 +68,9 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		super(context, prefix);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.opentdc.rates.ServiceProvider#list(java.lang.String, java.lang.String, long, long)
+	 */
 	@Override
 	public List<RatesModel> list(
 			String queryType, 
@@ -66,6 +81,9 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.opentdc.rates.ServiceProvider#create(org.opentdc.rates.RatesModel)
+	 */
 	@Override
 	public RatesModel create(
 			RatesModel rate) 
@@ -74,6 +92,9 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.opentdc.rates.ServiceProvider#read(java.lang.String)
+	 */
 	@Override
 	public RatesModel read(
 			String id) 
@@ -82,6 +103,9 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.opentdc.rates.ServiceProvider#update(java.lang.String, org.opentdc.rates.RatesModel)
+	 */
 	@Override
 	public RatesModel update(
 			String id, 
@@ -91,11 +115,14 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.opentdc.rates.ServiceProvider#delete(java.lang.String)
+	 */
 	@Override
 	public void delete(
 			String id) 
 			throws NotFoundException, InternalServerErrorException {
 		// TODO Auto-generated method stub
-		
+		return;
 	}
 }
