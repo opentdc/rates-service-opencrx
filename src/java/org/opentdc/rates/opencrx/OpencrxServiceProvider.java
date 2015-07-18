@@ -23,13 +23,25 @@
  */
 package org.opentdc.rates.opencrx;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
+import javax.jdo.PersistenceManager;
 import javax.naming.NamingException;
 import javax.servlet.ServletContext;
 
+import org.opencrx.kernel.activity1.cci2.ResourceRateQuery;
+import org.opencrx.kernel.activity1.jmi1.Resource;
+import org.opencrx.kernel.activity1.jmi1.ResourceRate;
+import org.opencrx.kernel.utils.Utils;
 import org.openmdx.base.exception.ServiceException;
 import org.opentdc.opencrx.AbstractOpencrxServiceProvider;
+import org.opentdc.opencrx.ActivitiesHelper;
+import org.opentdc.rates.Currency;
+import org.opentdc.rates.RateType;
 import org.opentdc.rates.RatesModel;
 import org.opentdc.rates.ServiceProvider;
 import org.opentdc.service.exception.DuplicateException;
@@ -38,24 +50,16 @@ import org.opentdc.service.exception.NotFoundException;
 import org.opentdc.service.exception.ValidationException;
 
 /**
- * Implementation of RatesService with OpenCRX
- * @author Bruno Kaiser
+ * Rates service for openCRX.
  *
  */
 public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider implements ServiceProvider {
-	
-	public static final short ACTIVITY_GROUP_TYPE_PROJECT = 40;
-	public static final short ACCOUNT_ROLE_CUSTOMER = 100;
-	public static final short ACTIVITY_CLASS_INCIDENT = 2;
-	public static final short ICAL_TYPE_NA = 0;
-	public static final short ICAL_CLASS_NA = 0;
-	public static final short ICAL_TYPE_VEVENT = 1;
 
-	// instance variables
-	// private static final Logger logger = Logger.getLogger(OpencrxServiceProvider.class.getName());
+	private static final Logger logger = Logger.getLogger(OpencrxServiceProvider.class.getName());
 
 	/**
 	 * Constructor.
+	 * 
 	 * @param context the servlet context
 	 * @param prefix the simple class name of the service provider
 	 * @throws ServiceException
@@ -68,17 +72,119 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 		super(context, prefix);
 	}
 
+	/**
+	 * Get RateType to rate type code.
+	 * 
+	 * @param rateType
+	 * @return
+	 */
+	protected short toRateTypeCode(
+		RateType rateType
+	) {
+		switch(rateType) {
+			case STANDARD_INTERNAL:
+				return 100;
+			case STANDARD_EXTERNAL_ON_SITE:
+				return 101;
+			case STANDARD_EXTERNAL_OFF_SITE:
+				return 102;
+			case OVERTIME_INTERNAL:
+				return 103;
+			case OVERTIME_EXTERNAL_ON_SITE:
+				return 104;
+			case OVERTIME_EXTERNAL_OFF_SITE:
+				return 105;
+			default:
+				return 0;
+		}
+	}
+
+	/**
+	 * Map rate type code to RateType.
+	 * 
+	 * @param rateTypeCode
+	 * @return
+	 */
+	protected RateType toRateType(
+		short rateTypeCode
+	) {
+		if(rateTypeCode == 100) {
+			return RateType.STANDARD_INTERNAL;
+		} else if(rateTypeCode == 101) {
+			return RateType.STANDARD_EXTERNAL_ON_SITE;
+		} else if(rateTypeCode == 102) {
+			return RateType.STANDARD_EXTERNAL_OFF_SITE;
+		} else if(rateTypeCode == 103) {
+			return RateType.OVERTIME_INTERNAL;
+		} else if(rateTypeCode == 104) {
+			return RateType.OVERTIME_EXTERNAL_ON_SITE;
+		} else if(rateTypeCode == 105) {
+			return RateType.OVERTIME_EXTERNAL_OFF_SITE;
+		} else {
+			return RateType.getDefaultRateType();
+		}
+	}
+
+	/**
+	 * Map resource rate to rate.
+	 * 
+	 * @param resourceRate
+	 * @return
+	 */
+	protected RatesModel mapToRate(
+		ResourceRate resourceRate
+	) {
+		RatesModel rates = new RatesModel();
+		rates.setCreatedAt(resourceRate.getCreatedAt());
+		rates.setCreatedBy(resourceRate.getCreatedBy().get(0));
+		rates.setModifiedAt(resourceRate.getModifiedAt());
+		rates.setModifiedBy(resourceRate.getModifiedBy().get(0));
+		rates.setId(resourceRate.refGetPath().getLastSegment().toClassicRepresentation());
+		rates.setCurrency(Currency.toCurrency(resourceRate.getRateCurrency()));
+		rates.setRate(resourceRate.getRate().intValue());
+		rates.setTitle(resourceRate.getName());
+		rates.setDescription(resourceRate.getDescription());
+		rates.setType(this.toRateType(resourceRate.getRateType()));
+		return rates;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.opentdc.rates.ServiceProvider#list(java.lang.String, java.lang.String, long, long)
 	 */
 	@Override
 	public List<RatesModel> list(
-			String queryType, 
-			String query, 
-			long position,
-			long size) {
-		// TODO Auto-generated method stub
-		return null;
+		String queryType, 
+		String query, 
+		int position,
+		int size
+	) {
+		PersistenceManager pm = this.getPersistenceManager();
+		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
+		Resource ratesResource = ActivitiesHelper.findRatesResource(activitySegment);
+		if(ratesResource == null) {
+			throw new org.opentdc.service.exception.NotFoundException(ActivitiesHelper.RATES_RESOURCE_NAME);
+		} else {
+			try {
+				ResourceRateQuery resourceRateQuery = (ResourceRateQuery)pm.newQuery(ResourceRate.class);
+				resourceRateQuery.forAllDisabled().isFalse();
+				resourceRateQuery.orderByName().ascending();
+				List<ResourceRate> resourceRates = ratesResource.getResourceRate(resourceRateQuery);
+				List<RatesModel> result = new ArrayList<RatesModel>();
+				int count = 0;
+				for(Iterator<ResourceRate> i = resourceRates.listIterator(position); i.hasNext(); ) {
+					ResourceRate resourceRate = i.next();
+					result.add(this.mapToRate(resourceRate));
+					count++;
+					if(count >= size) {
+						break;
+					}
+				}
+				return result;
+			} catch(Exception e) {
+				new ServiceException(e).log();
+				throw new InternalServerErrorException(e.getMessage());
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -86,10 +192,62 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 */
 	@Override
 	public RatesModel create(
-			RatesModel rate) 
-			throws DuplicateException, ValidationException {
-		// TODO Auto-generated method stub
-		return null;
+		RatesModel rate
+	) throws DuplicateException, ValidationException {
+		PersistenceManager pm = this.getPersistenceManager();
+		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
+		Resource ratesResource = ActivitiesHelper.findRatesResource(activitySegment);
+		if(ratesResource == null) {
+			throw new org.opentdc.service.exception.NotFoundException(ActivitiesHelper.RATES_RESOURCE_NAME);
+		} else {
+			if(rate.getId() != null) {
+				ResourceRate resourceRate = null;
+				try {
+					resourceRate = ratesResource.getResourceRate(rate.getId());
+				} catch(Exception ignore) {}
+				if(resourceRate != null) {
+					throw new DuplicateException("Rate with ID " + rate.getId() + " exists already.");			
+				} else {
+					throw new ValidationException("Rate <" + rate.getId() + "> contains an ID generated on the client. This is not allowed.");
+				}
+			}
+			if (rate.getTitle() == null || rate.getTitle().isEmpty()) {
+				throw new ValidationException("rate must contain a valid title.");
+			}
+			if (rate.getRate() < 0) {
+				throw new ValidationException("rate: negative rates are not allowed.");
+			}
+			if(rate.getCurrency() == null) {
+				rate.setCurrency(Currency.getDefaultCurrency());
+			}
+			if(rate.getType() == null) {
+				rate.setType(RateType.getDefaultRateType());
+			}
+			ResourceRate resourceRate = null;
+			resourceRate = pm.newInstance(ResourceRate.class);
+			resourceRate.setRateCurrency((short)rate.getCurrency().getIsoCode());
+			resourceRate.setRate(new BigDecimal(rate.getRate()));
+			resourceRate.setName(rate.getTitle());
+			resourceRate.setDescription(rate.getDescription());
+			resourceRate.setRateType(this.toRateTypeCode(rate.getType()));
+			try {
+				pm.currentTransaction().begin();
+				ratesResource.addResourceRate(
+					Utils.getUidAsString(),
+					resourceRate
+				);
+				pm.currentTransaction().commit();
+				return this.read(
+					resourceRate.refGetPath().getLastSegment().toClassicRepresentation()
+				);
+			} catch(Exception e) {
+				new ServiceException(e).log();
+				try {
+					pm.currentTransaction().rollback();
+				} catch(Exception ignore) {}
+				throw new InternalServerErrorException("Unable to create rate");
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -97,10 +255,19 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 */
 	@Override
 	public RatesModel read(
-			String id) 
-			throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		String id
+	) throws NotFoundException {
+		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
+		Resource ratesResource = ActivitiesHelper.findRatesResource(activitySegment);
+		if(ratesResource == null) {
+			throw new org.opentdc.service.exception.NotFoundException(ActivitiesHelper.RATES_RESOURCE_NAME);
+		} else {
+			ResourceRate resourceRate = ratesResource.getResourceRate(id);
+			if(resourceRate == null || Boolean.TRUE.equals(resourceRate.isDisabled())) {
+				throw new org.opentdc.service.exception.NotFoundException(id);				
+			}
+			return this.mapToRate(resourceRate);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -108,11 +275,37 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 */
 	@Override
 	public RatesModel update(
-			String id, 
-			RatesModel rate)
-			throws NotFoundException, ValidationException {
-		// TODO Auto-generated method stub
-		return null;
+		String id, 
+		RatesModel rate
+	) throws NotFoundException, ValidationException {
+		PersistenceManager pm = this.getPersistenceManager();
+		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
+		Resource ratesResource = ActivitiesHelper.findRatesResource(activitySegment);
+		if(ratesResource == null) {
+			throw new org.opentdc.service.exception.NotFoundException(id);
+		} else {
+			ResourceRate resourceRate = ratesResource.getResourceRate(id);
+			if(resourceRate == null || Boolean.TRUE.equals(resourceRate.isDisabled())) {
+				throw new org.opentdc.service.exception.NotFoundException(id);				
+			} else {
+				try {
+					pm.currentTransaction().begin();
+					resourceRate.setRateCurrency((short)rate.getCurrency().getIsoCode());
+					resourceRate.setRate(new BigDecimal(rate.getRate()));
+					resourceRate.setName(rate.getTitle());
+					resourceRate.setDescription(rate.getDescription());
+					resourceRate.setRateType(this.toRateTypeCode(rate.getType()));
+					pm.currentTransaction().commit();
+				} catch(Exception e) {
+					new ServiceException(e).log();
+					try {
+						pm.currentTransaction().rollback();
+					} catch(Exception ignore) {}
+					throw new InternalServerErrorException("Unable to update rate");
+				}
+				return this.read(id);
+			}
+		}
 	}
 
 	/* (non-Javadoc)
@@ -120,9 +313,30 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 */
 	@Override
 	public void delete(
-			String id) 
-			throws NotFoundException, InternalServerErrorException {
-		// TODO Auto-generated method stub
-		return;
+		String id
+	) throws NotFoundException, InternalServerErrorException {
+		PersistenceManager pm = this.getPersistenceManager();
+		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
+		Resource ratesResource = ActivitiesHelper.findRatesResource(activitySegment);
+		if(ratesResource == null) {
+			throw new org.opentdc.service.exception.NotFoundException(ActivitiesHelper.RATES_RESOURCE_NAME);
+		} else {
+			ResourceRate resourceRate = ratesResource.getResourceRate(id);
+			if(resourceRate == null || Boolean.TRUE.equals(resourceRate.isDisabled())) {
+				throw new org.opentdc.service.exception.NotFoundException(id);				
+			}
+			try {
+				pm.currentTransaction().begin();
+				resourceRate.setDisabled(true);
+				pm.currentTransaction().commit();
+			} catch(Exception e) {
+				new ServiceException(e).log();
+				try {
+					pm.currentTransaction().rollback();
+				} catch(Exception ignore) {}
+				throw new InternalServerErrorException("Unable to delete rate");
+			}
+		}
 	}
+	
 }
