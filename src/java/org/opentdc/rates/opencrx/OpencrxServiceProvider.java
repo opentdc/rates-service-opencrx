@@ -42,7 +42,7 @@ import org.opentdc.opencrx.AbstractOpencrxServiceProvider;
 import org.opentdc.opencrx.ActivitiesHelper;
 import org.opentdc.rates.Currency;
 import org.opentdc.rates.RateType;
-import org.opentdc.rates.RatesModel;
+import org.opentdc.rates.RateModel;
 import org.opentdc.rates.ServiceProvider;
 import org.opentdc.service.exception.DuplicateException;
 import org.opentdc.service.exception.InternalServerErrorException;
@@ -131,10 +131,10 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 * @param resourceRate
 	 * @return
 	 */
-	protected RatesModel mapToRate(
+	protected RateModel mapToRate(
 		ResourceRate resourceRate
 	) {
-		RatesModel rates = new RatesModel();
+		RateModel rates = new RateModel();
 		rates.setCreatedAt(resourceRate.getCreatedAt());
 		rates.setCreatedBy(resourceRate.getCreatedBy().get(0));
 		rates.setModifiedAt(resourceRate.getModifiedAt());
@@ -152,7 +152,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 * @see org.opentdc.rates.ServiceProvider#list(java.lang.String, java.lang.String, long, long)
 	 */
 	@Override
-	public List<RatesModel> list(
+	public List<RateModel> list(
 		String queryType, 
 		String query, 
 		int position,
@@ -169,7 +169,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 				resourceRateQuery.forAllDisabled().isFalse();
 				resourceRateQuery.orderByName().ascending();
 				List<ResourceRate> resourceRates = ratesResource.getResourceRate(resourceRateQuery);
-				List<RatesModel> result = new ArrayList<RatesModel>();
+				List<RateModel> result = new ArrayList<RateModel>();
 				int count = 0;
 				for(Iterator<ResourceRate> i = resourceRates.listIterator(position); i.hasNext(); ) {
 					ResourceRate resourceRate = i.next();
@@ -191,8 +191,8 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 * @see org.opentdc.rates.ServiceProvider#create(org.opentdc.rates.RatesModel)
 	 */
 	@Override
-	public RatesModel create(
-		RatesModel rate
+	public RateModel create(
+		RateModel rate
 	) throws DuplicateException, ValidationException {
 		PersistenceManager pm = this.getPersistenceManager();
 		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
@@ -254,7 +254,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 * @see org.opentdc.rates.ServiceProvider#read(java.lang.String)
 	 */
 	@Override
-	public RatesModel read(
+	public RateModel read(
 		String id
 	) throws NotFoundException {
 		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
@@ -274,9 +274,9 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 * @see org.opentdc.rates.ServiceProvider#update(java.lang.String, org.opentdc.rates.RatesModel)
 	 */
 	@Override
-	public RatesModel update(
+	public RateModel update(
 		String id, 
-		RatesModel rate
+		RateModel rate
 	) throws NotFoundException, ValidationException {
 		PersistenceManager pm = this.getPersistenceManager();
 		org.opencrx.kernel.activity1.jmi1.Segment activitySegment = this.getActivitySegment();
