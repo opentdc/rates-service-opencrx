@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import javax.jdo.PersistenceManager;
 import javax.naming.NamingException;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.opencrx.kernel.activity1.cci2.ResourceRateQuery;
 import org.opencrx.kernel.activity1.jmi1.Resource;
@@ -192,6 +193,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 */
 	@Override
 	public RateModel create(
+		HttpServletRequest request,
 		RateModel rate
 	) throws DuplicateException, ValidationException {
 		PersistenceManager pm = this.getPersistenceManager();
@@ -275,6 +277,7 @@ public class OpencrxServiceProvider extends AbstractOpencrxServiceProvider imple
 	 */
 	@Override
 	public RateModel update(
+		HttpServletRequest request,
 		String id, 
 		RateModel rate
 	) throws NotFoundException, ValidationException {
